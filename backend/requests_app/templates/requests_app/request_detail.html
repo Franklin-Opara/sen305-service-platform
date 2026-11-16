@@ -1,0 +1,63 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<h1>{{ item.title }}</h1>
+
+<p><strong>Category:</strong> {{ item.category }}</p>
+<p><strong>Status:</strong> {{ item.get_status_display }}</p>
+<p><strong>Priority:</strong> {{ item.priority }}</p>
+<p><strong>Location:</strong> {{ item.location }}</p>
+<p><strong>Requester:</strong> {{ item.requester }}</p>
+<p><strong>Description:</strong> {{ item.description }}</p>
+
+{% if item.due_at %}
+<p><strong>Due:</strong> {{ item.due_at }}</p>
+{% endif %}
+
+{% if item.resolution_summary %}
+<p><strong>Resolution:</strong> {{ item.resolution_summary }}</p>
+{% endif %}
+
+{% if item.requester == request.user or request.user.is_staff %}
+<a href="{% url 'requests:update' item.id %}">Edit Request</a>
+{% endif %}
+
+<h2>Comments</h2>
+
+{% for comment in comments %}
+<div>
+    <strong>{{ comment.author }}</strong>
+    <p>{{ comment.body }}</p>
+    <small>{{ comment.created_at }}</small>
+</div>
+{% empty %}
+<p>No comments yet.</p>
+{% endfor %}
+
+<h3>Add Comment</h3>
+<form method="post" action="{% url 'requests:comment-add' item.id %}">
+    {% csrf_token %}
+    {{ comment_form.as_p }}
+    <button type="submit">Add Comment</button>
+</form>
+
+{% if request.user.is_staff %}
+    <h2>Assign Technician</h2>
+    <form method="post" action="{% url 'requests:assign' item.id %}">
+        {% csrf_token %}
+        {{ assignment_form.as_p }}
+        <button type="submit">Assign</button>
+    </form>
+{% endif %}
+
+{% if request.user.is_staff or item.work_order.technician == request.user %}
+    <h2>Resolve Request</h2>
+    <form method="post" action="{% url 'requests:resolve' item.id %}">
+        {% csrf_token %}
+        {{ resolution_form.as_p }}
+        <button type="submit">Resolve</button>
+    </form>
+{% endif %}
+
+<a href="{% url 'requests:list' %}">Back to Requests</a>
+{% endblock %}

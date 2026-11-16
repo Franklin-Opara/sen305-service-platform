@@ -1,0 +1,64 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<h1>Service Requests</h1>
+<div>
+    <p>Open: {{ summary.open_count }}</p>
+    <p>Assigned: {{ summary.assigned_count }}</p>
+    <p>Resolved: {{ summary.resolved_count }}</p>
+</div>
+
+<a href="{% url 'requests:create' %}">Create New Request</a>
+
+<form method="get">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search requests">
+
+    <select name="status">
+        <option value="">All statuses</option>
+        {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if status == value %}selected{% endif %}>
+                {{ label }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Filter</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Priority</th>
+            <th>Comments</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in requests %}
+        <tr>
+            <td><a href="{% url 'requests:detail' item.id %}">{{ item.title }}</a></td>
+            <td>{{ item.category }}</td>
+            <td>{{ item.get_status_display }}</td>
+            <td>{{ item.priority }}</td>
+            <td>{{ item.comment_count }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No requests found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div>
+    {% if page_obj.has_previous %}
+        <a href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+    {% endif %}
+
+    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+
+    {% if page_obj.has_next %}
+        <a href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+    {% endif %}
+</div>
+{% endblock %}
